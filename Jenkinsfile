@@ -8,6 +8,7 @@ pipeline {
         MANIFEST_REPO = 'https://github.com/Aparnadeloitte/Inji-infra-azure.git'
         MANIFEST_BRANCH = 'main'
     }
+    
 
     stages {
         stage('Get Commit Hash') {
