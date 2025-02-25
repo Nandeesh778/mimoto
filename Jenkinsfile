@@ -9,7 +9,6 @@ pipeline {
         MANIFEST_BRANCH = 'main'
     }
     
-
     stages {
         stage('Get Commit Hash') {
             steps {
