@@ -10,6 +10,15 @@ pipeline {
     }
     
     stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    cleanWs()  // Clean workspace to avoid conflicts
+                    git branch: env.GIT_BRANCH, url: env.GIT_REPO
+                }
+            }
+        }
+
         stage('Get Commit Hash') {
             steps {
                 script {
