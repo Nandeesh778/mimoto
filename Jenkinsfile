@@ -18,16 +18,12 @@ pipeline {
 
         stage('Clone Repository') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'githubpat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
-                        sh """
-                        git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/Nandeesh778/mimoto.git
-                        cd mimoto
-                        git checkout ${GIT_BRANCH}
-                        git pull
-                        """
-                    }
-                }
+                sh """
+                git clone ${GIT_REPO}
+                cd mimoto
+                git checkout ${GIT_BRANCH}
+                git pull
+                """
             }
         }
 
