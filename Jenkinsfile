@@ -44,6 +44,7 @@ pipeline {
             steps {
                 script {
                     dir('mimoto') {
+                        sh """ mvn clean package -DskipTests """
                         sh """
                         docker build -t ${env.DOCKER_IMAGE} .
                         """
