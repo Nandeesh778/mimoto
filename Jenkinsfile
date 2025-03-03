@@ -48,6 +48,7 @@ pipeline {
                     dir('mimoto') {
                         withEnv(["JAVA_HOME=${env.JAVA_HOME}", "PATH=${env.JAVA_HOME}/bin:${env.PATH}"]) {
                             sh """mvn clean package -DskipTests"""
+                            sh """rm -f target/mimoto-*-javadoc.jar target/mimoto-*-sources.jar"""
                             sh """docker build -t ${env.DOCKER_IMAGE} ."""
                         }
                     }
