@@ -7,6 +7,8 @@ pipeline {
         DOCKER_IMAGE_BASE = 'raparna154/inji-mimoto-service'
         MANIFEST_REPO = 'https://github.com/Aparnadeloitte/Inji-infra-azure.git'
         MANIFEST_BRANCH = 'main'
+        JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
+        PATH = "${JAVA_HOME}/bin:$PATH"
     }
 
     stages {
@@ -44,10 +46,10 @@ pipeline {
             steps {
                 script {
                     dir('mimoto') {
-                        sh """ mvn clean package -DskipTests """
-                        sh """
-                        docker build -t ${env.DOCKER_IMAGE} .
-                        """
+                        withEnv(["JAVA_HOME=${env.JAVA_HOME}", "PATH=${env.JAVA_HOME}/bin:${env.PATH}"]) {
+                            sh """mvn clean package -DskipTests"""
+                            sh """docker build -t ${env.DOCKER_IMAGE} ."""
+                        }
                     }
                 }
             }
