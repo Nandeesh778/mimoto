@@ -8,13 +8,25 @@ pipeline {
         MANIFEST_REPO = 'https://github.com/Aparnadeloitte/Inji-infra-azure.git'
         MANIFEST_BRANCH = 'main'
     }
-    
+
     stages {
-        stage('Checkout Code') {
+        stage('Clean Workspace') {
+            steps {
+                sh 'rm -rf mimoto || true'
+            }
+        }
+
+        stage('Clone Repository') {
             steps {
                 script {
-                    cleanWs()  // Clean workspace to avoid conflicts
-                    git branch: env.GIT_BRANCH, url: env.GIT_REPO
+                    withCredentials([usernamePassword(credentialsId: 'githubpat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                        sh """
+                        git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/Nandeesh778/mimoto.git
+                        cd mimoto
+                        git checkout ${GIT_BRANCH}
+                        git pull
+                        """
+                    }
                 }
             }
         }
@@ -23,7 +35,7 @@ pipeline {
             steps {
                 script {
                     env.COMMIT_HASH = sh(
-                        script: "git rev-parse --short HEAD",
+                        script: "cd mimoto && git rev-parse --short HEAD",
                         returnStdout: true
                     ).trim()
                     env.DOCKER_IMAGE = "${DOCKER_IMAGE_BASE}:${env.COMMIT_HASH}-${env.BUILD_NUMBER}"
@@ -35,9 +47,11 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh """
-                    docker build -t ${env.DOCKER_IMAGE} .
-                    """
+                    dir('mimoto') {
+                        sh """
+                        docker build -t ${env.DOCKER_IMAGE} .
+                        """
+                    }
                 }
             }
         }
@@ -55,11 +69,39 @@ pipeline {
                 }
             }
         }
+
+        stage('Update Manifest Repo') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'githubpat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                        sh """
+                        rm -rf mimoto-infra
+                        git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/your-org/mimoto-infra.git
+                        cd mimoto-infra
+                        git checkout ${MANIFEST_BRANCH}
+
+                        echo "Before update:"
+                        cat mimoto/values.yaml || true
+
+                        yq eval '.image.repository = "${DOCKER_IMAGE_BASE}" |
+                                .image.tag = "'"${env.COMMIT_HASH}-${env.BUILD_NUMBER}"'"' -i mimoto/values.yaml
+
+                        echo "After update:"
+                        cat mimoto/values.yaml
+
+                        git add mimoto/values.yaml
+                        git commit -m "Auto-update image to ${DOCKER_IMAGE}" || echo "No changes to commit"
+                        git push origin ${MANIFEST_BRANCH}
+                        """
+                    }
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo "Pipeline completed successfully! updated image: ${env.DOCKER_IMAGE} in manifest repo."
+            echo "Pipeline completed successfully! Updated image: ${env.DOCKER_IMAGE} in manifest repo."
         }
         failure {
             echo "Failed! Last attempted Docker Image Tag: ${env.DOCKER_IMAGE}"
