@@ -26,6 +26,7 @@
                     """
                 }
             }
+            
 
             // stage('Get Commit Hash') {
             //     steps {
@@ -88,7 +89,7 @@
 
                             # Commit & Push changes if there are any
                             git add values.yaml
-                            git commit -m "Auto-update image tag to ${env.COMMIT_HASH}-${env.BUILD_NUMBER}" || echo "No changes to commit"
+                            git commit -m "Auto-update image tag to manifest repo" || echo "No changes to commit"
                             git push origin ${GIT_BRANCH}
                             """
                         }
