@@ -16,16 +16,58 @@ pipeline {
             }
         }
 
-        stage('Clone Repository') {
-            steps {
-                sh """
-                git clone ${GIT_REPO}
-                cd mimoto
-                git checkout ${GIT_BRANCH}
-                git pull
-                """
+            stage('Clone Repository') {
+                steps {
+                    sh """
+                    git clone ${GIT_REPO}
+                    cd mimoto
+                    git checkout ${GIT_BRANCH}
+                    git pull
+                    """
+                }
             }
-        }
+            
+
+            // stage('Get Commit Hash') {
+            //     steps {
+            //         script {
+            //             env.COMMIT_HASH = sh(
+            //                 script: "cd mimoto && git rev-parse --short HEAD",
+            //                 returnStdout: true
+            //             ).trim()
+            //             env.DOCKER_IMAGE = "${DOCKER_IMAGE_BASE}:${env.COMMIT_HASH}-${env.BUILD_NUMBER}"
+            //             echo "Docker Image Tag: ${env.DOCKER_IMAGE}"
+            //         }
+            //     }
+            // }
+
+            // stage('Build Docker Image') {
+            //     steps {
+            //         script {
+            //             dir('mimoto') {
+            //                 withEnv(["JAVA_HOME=${env.JAVA_HOME}", "PATH=${env.JAVA_HOME}/bin:${env.PATH}"]) {
+            //                     sh """mvn clean package -DskipTests"""
+            //                     sh """rm -f target/mimoto-*-javadoc.jar target/mimoto-*-sources.jar"""
+            //                     sh """docker build -t ${env.DOCKER_IMAGE} ."""
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+
+            // stage('Push Docker Image') {
+            //     steps {
+            //         script {
+            //             withCredentials([usernamePassword(credentialsId: 'dockerhubpat', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            //                 sh """
+            //                 echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+            //                 docker push ${env.DOCKER_IMAGE}
+            //                 docker logout
+            //                 """
+            //             }
+            //         }
+            //     }
+            // }
 
         stage('Update Helm Values.yaml') {
             steps {
