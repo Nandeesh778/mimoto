@@ -8,7 +8,7 @@ istio:
   enabled: false  
 service:
   type: ClusterIP  
-  port: 8080  
+  port: 8091
 
 extraEnvVars:
   ENABLE_SECURE_MODE: true  
