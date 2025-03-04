@@ -1,28 +1,23 @@
 replicaCount: 1
-
 image:
   repository: raparna154/inji-mimoto-service
-  tag: 99441a3-7  
-  pullPolicy: IfNotPresent 
+  tag: 99441a3-6
+  pullPolicy: IfNotPresent
 istio:
-  enabled: false  
+  enabled: false
 service:
-  type: ClusterIP  
+  type: ClusterIP
   port: 8091
-
 extraEnvVars:
-  ENABLE_SECURE_MODE: true  
-
+  ENABLE_SECURE_MODE: true
 serviceMonitor:
-  enabled: false  
+  enabled: false
 metrics:
-  enabled: false  
-
+  enabled: false
 env:
   container_user: "mosip"
   active_profile_env: "default"
   SPRING_CONFIG_NAME: "mimoto"
-
 resources:
   limits:
     cpu: "500m"
@@ -30,9 +25,6 @@ resources:
   requests:
     cpu: "250m"
     memory: "256Mi"
-
-nodeSelector: {}  # Assign to specific nodes if needed
-
-tolerations: []  # If you need to run on specific tainted nodes
-
-affinity: {}  # Add scheduling rules if needed
+nodeSelector: {} # Assign to specific nodes if needed
+tolerations: [] # If you need to run on specific tainted nodes
+affinity: {} # Add scheduling rules if needed
