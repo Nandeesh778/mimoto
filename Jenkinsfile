@@ -5,8 +5,6 @@ pipeline {
         GIT_REPO = 'https://github.com/Nandeesh778/mimoto.git'
         GIT_BRANCH = 'test' 
         DOCKER_IMAGE_BASE = 'raparna154/inji-mimoto-service'
-        MANIFEST_REPO = 'https://github.com/Aparnadeloitte/Inji-infra-azure.git'
-        MANIFEST_BRANCH = 'main'
         JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:$PATH"
     }
@@ -70,33 +68,28 @@ pipeline {
             }
         }
 
-        stage('Update Manifest Repo') {
+        stage('Update Helm Values.yaml') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'githubpat2', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    dir('mimoto') {  // Ensure we're in the correct repo directory
                         sh """
-                        rm -rf Inji-infra-azure
-                        # Clone manifest repo
-                        git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/Aparnadeloitte/Inji-infra-azure.git
-                        cd Inji-infra-azure
-                        git checkout ${MANIFEST_BRANCH}
-
                         echo "Before update:"
-                        cat mimoto/values.yaml || true
+                        cat values.yaml || true
 
-                        # Force update the image tag
-                        yq eval '.image.repository = "raparna154/inji-mimoto-service" |
-                       .image.tag = "'"${env.COMMIT_HASH}-${env.BUILD_NUMBER}"'"
-                        ' -i mimoto/values.yaml
+                        # Update values.yaml using yq
+                        yq eval '
+                        .image.repository = "${DOCKER_IMAGE_BASE}" |
+                        .image.tag = "${env.COMMIT_HASH}-${env.BUILD_NUMBER}"
+                        ' -i values.yaml
 
                         # Debugging: Show after update
                         echo "After update:"
-                        cat mimoto/values.yaml
+                        cat values.yaml
 
                         # Commit & Push changes if there are any
-                        git add mimoto/values.yaml
-                        git commit -m "Auto-update image repository to ${DOCKER_IMAGE_BASE} and tag to ${env.IMAGE_TAG}" || echo "No changes to commit"
-                        git push origin ${MANIFEST_BRANCH}
+                        git add values.yaml
+                        git commit -m "Auto-update image tag to ${env.COMMIT_HASH}-${env.BUILD_NUMBER}" || echo "No changes to commit"
+                        git push origin ${GIT_BRANCH}
                         """
                     }
                 }
