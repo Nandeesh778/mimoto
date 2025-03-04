@@ -73,24 +73,29 @@ pipeline {
         stage('Update Manifest Repo') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'githubpat', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    withCredentials([usernamePassword(credentialsId: 'githubpat2', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                         sh """
-                        rm -rf mimoto-infra
-                        git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/your-org/mimoto-infra.git
-                        cd mimoto-infra
+                        rm -rf Inji-infra-azure
+                        # Clone manifest repo
+                        git clone https://${GIT_USER}:${GIT_TOKEN}@github.com/Aparnadeloitte/Inji-infra-azure.git
+                        cd Inji-infra-azure
                         git checkout ${MANIFEST_BRANCH}
 
                         echo "Before update:"
                         cat mimoto/values.yaml || true
 
-                        yq eval '.image.repository = "${DOCKER_IMAGE_BASE}" |
-                                .image.tag = "'"${env.COMMIT_HASH}-${env.BUILD_NUMBER}"'"' -i mimoto/values.yaml
+                        # Force update the image tag
+                        yq eval '.image.repository = "raparna154/inji-mimoto-service" |
+                       .image.tag = "'"${env.COMMIT_HASH}-${env.BUILD_NUMBER}"'"
+                        ' -i mimoto/values.yaml
 
+                        # Debugging: Show after update
                         echo "After update:"
                         cat mimoto/values.yaml
 
+                        # Commit & Push changes if there are any
                         git add mimoto/values.yaml
-                        git commit -m "Auto-update image to ${DOCKER_IMAGE}" || echo "No changes to commit"
+                        git commit -m "Auto-update image repository to ${DOCKER_IMAGE_BASE} and tag to ${env.IMAGE_TAG}" || echo "No changes to commit"
                         git push origin ${MANIFEST_BRANCH}
                         """
                     }
